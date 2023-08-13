@@ -28,6 +28,24 @@ void sputsln(char *str)
   HAL_UART_Transmit(&huart2, (uint8_t *)NEW_LINE, strlen(NEW_LINE), 100);
 }
 
+void sputsf(char *format_str, ...)
+{
+  char *tmp[UART_BUFFER_SIZE];
+
+  va_list args;
+  va_start( args, format_str );
+
+  if(strlen(format_str) > UART_BUFFER_SIZE){
+    va_end(args);
+    return;
+  }
+
+  vsprintf(tmp, format_str, args);
+  sputs(tmp);
+
+  return;
+}
+
 
 char sgetc(void)
 {

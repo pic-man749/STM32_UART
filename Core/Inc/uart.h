@@ -15,7 +15,8 @@
 #include <stdarg.h>
 
 // define
-#define UART_BUFFER_SIZE 1024
+#define UART_BUFFER_SIZE 256
+#define UART_TIMEOUT 100
 #define NEW_LINE  "\r\n"
 #define RETURN_CHAR '\r'
 
@@ -26,7 +27,7 @@ extern UART_HandleTypeDef huart2;
 void sputc(char c);
 void sputs(char *str);
 void sputsln(char *str);
-void sputsf(char *str, ...);
+int sputsf(char *str, ...);
 
 char sgetc(void);
 int sgets(char *buffer, int len);

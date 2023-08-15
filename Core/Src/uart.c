@@ -8,7 +8,7 @@
 
 void sputc(char c)
 {
-  HAL_UART_Transmit(&huart2, (uint8_t *)&c, 1, 100);
+  HAL_UART_Transmit(&huart2, (uint8_t *)&c, 1, UART_TIMEOUT);
   return;
 }
 
@@ -18,17 +18,17 @@ void sputs(char *str)
   for(cnt=0; cnt<UART_BUFFER_SIZE; cnt++){
     if(str[cnt]=='\0') break;
   }
-  HAL_UART_Transmit(&huart2, (uint8_t *)str, cnt, 100);
+  HAL_UART_Transmit(&huart2, (uint8_t *)str, cnt, UART_TIMEOUT);
   return;
 }
 
 void sputsln(char *str)
 {
   sputs(str);
-  HAL_UART_Transmit(&huart2, (uint8_t *)NEW_LINE, strlen(NEW_LINE), 100);
+  HAL_UART_Transmit(&huart2, (uint8_t *)NEW_LINE, strlen(NEW_LINE), UART_TIMEOUT);
 }
 
-void sputsf(char *format_str, ...)
+int sputsf(char *format_str, ...)
 {
   char *tmp[UART_BUFFER_SIZE];
 
@@ -37,13 +37,13 @@ void sputsf(char *format_str, ...)
 
   if(strlen(format_str) > UART_BUFFER_SIZE){
     va_end(args);
-    return;
+    return -1;
   }
 
   vsprintf(tmp, format_str, args);
   sputs(tmp);
 
-  return;
+  return 0;
 }
 
 
@@ -51,7 +51,7 @@ char sgetc(void)
 {
   char c[1] = {'\0'};
   while(1){
-    HAL_StatusTypeDef res = HAL_UART_Receive(&huart2, (uint8_t *)c, 1, 10);
+    HAL_StatusTypeDef res = HAL_UART_Receive(&huart2, (uint8_t *)c, 1, UART_TIMEOUT);
     if(res == HAL_OK) break;
   }
   return (char)c[0];

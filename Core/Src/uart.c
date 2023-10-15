@@ -6,9 +6,12 @@
  */
 #include "uart.h"
 
+static uint8_t uart_recv_dma[UART_BUFFER_SIZE];
+static uint16_t uart_recv_dma_read_idx = 0;
+
 void sputc(char c)
 {
-  HAL_UART_Transmit(&huart2, (uint8_t *)&c, 1, UART_TIMEOUT);
+  HAL_UART_Transmit(p_huart, (uint8_t *)&c, 1, UART_TIMEOUT);
   return;
 }
 
@@ -18,14 +21,14 @@ void sputs(char *str)
   for(cnt=0; cnt<UART_BUFFER_SIZE; cnt++){
     if(str[cnt]=='\0') break;
   }
-  HAL_UART_Transmit(&huart2, (uint8_t *)str, cnt, UART_TIMEOUT);
+  HAL_UART_Transmit(p_huart, (uint8_t *)str, cnt, UART_TIMEOUT);
   return;
 }
 
 void sputsln(char *str)
 {
   sputs(str);
-  HAL_UART_Transmit(&huart2, (uint8_t *)NEW_LINE, strlen(NEW_LINE), UART_TIMEOUT);
+  HAL_UART_Transmit(p_huart, (uint8_t *)NEW_LINE, strlen(NEW_LINE), UART_TIMEOUT);
 }
 
 int sputsf(char *format_str, ...)
@@ -49,12 +52,19 @@ int sputsf(char *format_str, ...)
 
 char sgetc(void)
 {
-  char c[1] = {'\0'};
+  char c;
   while(1){
-    HAL_StatusTypeDef res = HAL_UART_Receive(&huart2, (uint8_t *)c, 1, UART_TIMEOUT);
-    if(res == HAL_OK) break;
+    uint32_t write_idx = (UART_BUFFER_SIZE - p_huart->hdmarx->Instance->CNDTR);
+    if(write_idx == uart_recv_dma_read_idx){
+      continue;
+    }
+    c = uart_recv_dma[uart_recv_dma_read_idx++];
+    if(uart_recv_dma_read_idx >= UART_BUFFER_SIZE){
+      uart_recv_dma_read_idx = 0;
+    }
+    break;
   }
-  return (char)c[0];
+  return (char)c;
 }
 
 int sgets(char *buffer, int len)
@@ -80,3 +90,6 @@ int sgets(char *buffer, int len)
   return idx;
 }
 
+void startRecv(){
+  HAL_UART_Receive_DMA(p_huart, uart_recv_dma, UART_BUFFER_SIZE);
+}

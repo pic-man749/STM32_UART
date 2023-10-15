@@ -22,6 +22,7 @@
 
 // serial structure
 extern UART_HandleTypeDef huart2;
+static UART_HandleTypeDef* p_huart = &huart2;
 
 // functions
 void sputc(char c);
